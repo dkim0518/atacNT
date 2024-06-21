@@ -1,0 +1,17 @@
+cryptography==38.0.4
+datasets==2.12.0
+dm-haiku==0.0.9
+einops==0.6.1
+enformer-pytorch==0.7.6
+fair-esm==2.0.0
+fsspec==2023.9.2
+jax==0.4.13
+jaxlib==0.4.13
+neptune-client==0.16.*
+omegaconf==2.3.0
+optax==0.1.7
+sentencepiece==0.1.97
+torch==2.0.0+cpu
+torchvision==0.15.0
+transformers==4.41.1
+zstandard==0.20.0
