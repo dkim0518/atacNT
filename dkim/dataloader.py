@@ -1,6 +1,7 @@
 import muon
 import scanpy as sc
 import pandas as pd
+import anndata as ad
 from anndata import AnnData
 from scipy.sparse import csr_matrix
 
@@ -24,18 +25,26 @@ def load_atac_seq_data(
         parsed ATAC seq dataset in AnnData object
 
     """
+    adata: AnnData
+
     if file_type == "h5":
         mdata = muon.read_10x_h5(file_path)
         adata = mdata.mod["atac"]
         filter_atac_threshold(adata, threshold)
         if not fragments:
-            convert_reads_to_fragments(adata)
+            convert_reads_to_fragments(adata, file_type)
         extract_gene_ids(adata)
-        return adata
+    
     elif file_type == "h5ad":
-        None
+        adata = ad.read_h5ad(file_path)
+        filter_atac_threshold(adata.layers["counts"], threshold)
+        if not fragments:
+            convert_reads_to_fragments(adata, file_type)
+    
     else:
         raise TypeError(f"File type of {file_type} is not supported.")
+    
+    return adata
 
 
 
@@ -60,7 +69,7 @@ def filter_atac_threshold(adata: AnnData, threshold: float):
 
 
 
-def convert_reads_to_fragments(adata: AnnData):
+def convert_reads_to_fragments(adata: AnnData, file_type: str):
     """
     Given an adata of ATAC seq data that contains read counts, convert the counts into
     estimated fragment counts by 1) rounding each count to the nearest integer and 2) dividing 
@@ -78,11 +87,13 @@ def convert_reads_to_fragments(adata: AnnData):
         data = data / 2
         return csr_matrix((data, csr_mat.indices, csr_mat.indptr), shape=csr_mat.shape)
 
-    print("Before converting reads to fragments:")
-    print("1s: ", (adata.X == 1).sum())
-    print("2s: ", (adata.X == 2).sum())
+    adata_input = adata.X if file_type == "h5" else adata.layers['counts']
 
-    adata.layers['fragments'] = round_to_even_csr(adata.X)
+    print("Before converting reads to fragments:")
+    print("1s: ", (adata_input == 1).sum())
+    print("2s: ", (adata_input == 2).sum())
+
+    adata.layers['fragments'] = round_to_even_csr(adata_input)
 
     print("After converting reads to fragments:")
     print("1s: ", (adata.layers['fragments'] == 1).sum())
