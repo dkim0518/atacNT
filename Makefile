@@ -120,3 +120,9 @@ notebook: build
 	$(DOCKER_VARS_TO_PASS) $(DOCKER_IMAGE_NAME_TPU) \
 	jupyter lab --port=$(PORT) --no-browser --ip=0.0.0.0 --allow-root
 endif
+
+attach_disk:
+	$(BASE_CMD) attach-disk $(NAME) --zone $(ZONE) --project $(PROJECT) --disk $(DISK_NAME) --mode read-write
+
+mount_disk_and_format:
+	$(BASE_CMD) ssh $(NAME) --zone $(ZONE) --project $(PROJECT) --command="sudo mkdir -p /mnt/disks/persist && sudo mkfs.ext4 -m 0 -E lazy_itable_init=0,lazy_journal_init=0,discard /dev/sdb && sudo mount -o discard,defaults /dev/sdb /mnt/disks/persist"
